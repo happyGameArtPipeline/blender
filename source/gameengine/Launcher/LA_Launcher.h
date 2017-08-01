@@ -35,6 +35,7 @@
 #include "SCA_IInputDevice.h"
 
 #include <string>
+#include <memory>
 
 class KX_Scene;
 class KX_ISystem;
@@ -65,20 +66,20 @@ protected:
 	GHOST_ISystem *m_system;
 
 	/// The gameengine itself.
-	KX_KetsjiEngine* m_ketsjiEngine;
+	std::unique_ptr<KX_KetsjiEngine> m_ketsjiEngine;
 	/// The game engine's system abstraction.
-	KX_ISystem* m_kxsystem;
+	std::unique_ptr<KX_ISystem> m_kxsystem;
 	/// The game engine's input device abstraction.
-	DEV_InputDevice *m_inputDevice;
-	DEV_EventConsumer *m_eventConsumer;
+	std::unique_ptr<DEV_InputDevice> m_inputDevice;
+	std::unique_ptr<DEV_EventConsumer> m_eventConsumer;
 	/// The game engine's canvas abstraction.
-	RAS_ICanvas *m_canvas;
+	std::unique_ptr<RAS_ICanvas> m_canvas;
 	/// The rasterizer.
-	RAS_Rasterizer *m_rasterizer;
+	std::unique_ptr<RAS_Rasterizer> m_rasterizer;
 	/// Converts Blender data files.
-	BL_BlenderConverter *m_converter;
+	std::unique_ptr<BL_BlenderConverter> m_converter;
 	/// Manage messages.
-	KX_NetworkMessageManager *m_networkMessageManager;
+	std::unique_ptr<KX_NetworkMessageManager> m_networkMessageManager;
 
 #ifdef WITH_PYTHON
 	PyObject *m_globalDict;
@@ -135,13 +136,13 @@ protected:
 
 public:
 	LA_Launcher(GHOST_ISystem *system, Main *maggie, Scene *scene, GlobalSettings *gs,
-				RAS_Rasterizer::StereoMode stereoMode, int samples, int argc, char **argv);
-	virtual ~LA_Launcher();
-
+				RAS_Rasterizer::StereoMode stereoMode, int samples,
 #ifdef WITH_PYTHON
-	/// Setup python global dictionnary, used outside constructor to compile without python.
-	void SetPythonGlobalDict(PyObject *globalDict);
+				PyObject *globalDict,
 #endif  // WITH_PYTHON
+				int argc, char **argv);
+
+	virtual ~LA_Launcher();
 
 	KX_ExitRequest GetExitRequested();
 	const std::string& GetExitString();

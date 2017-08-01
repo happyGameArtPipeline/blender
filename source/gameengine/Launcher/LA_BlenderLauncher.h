@@ -67,8 +67,12 @@ protected:
 	virtual void SetWindowOrder(short order);
 
 public:
-	LA_BlenderLauncher(GHOST_ISystem *system, Main *maggie, Scene *scene, GlobalSettings *gs, RAS_Rasterizer::StereoMode stereoMode, 
+	LA_BlenderLauncher(GHOST_ISystem *system, Main *maggie, Scene *scene, GlobalSettings *gs, RAS_Rasterizer::StereoMode stereoMode,
+#ifdef WITH_PYTHON
+					   PyObject *globalDict,
+#endif  // WITH_PYTHON
 					   int argc, char **argv, bContext *context, rcti *camframe, ARegion *ar, int alwaysUseExpandFraming);
+
 	virtual ~LA_BlenderLauncher();
 
 	virtual void InitEngine();

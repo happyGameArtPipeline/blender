@@ -78,7 +78,11 @@ extern "C" {
 #endif
 
 LA_Launcher::LA_Launcher(GHOST_ISystem *system, Main *maggie, Scene *scene, GlobalSettings *gs,
-						 RAS_Rasterizer::StereoMode stereoMode, int samples, int argc, char **argv)
+						 RAS_Rasterizer::StereoMode stereoMode, int samples,
+#ifdef WITH_PYTHON
+						 PyObject *globalDict,
+#endif  // WITH_PYTHON
+						 int argc, char **argv)
 	:m_startSceneName(scene->id.name + 2), 
 	m_startScene(scene),
 	m_maggie(maggie),
@@ -86,15 +90,8 @@ LA_Launcher::LA_Launcher(GHOST_ISystem *system, Main *maggie, Scene *scene, Glob
 	m_exitRequested(KX_ExitRequest::NO_REQUEST),
 	m_globalSettings(gs),
 	m_system(system),
-	m_ketsjiEngine(nullptr),
-	m_kxsystem(nullptr), 
-	m_inputDevice(nullptr),
-	m_eventConsumer(nullptr),
-	m_canvas(nullptr),
-	m_rasterizer(nullptr), 
-	m_converter(nullptr),
 #ifdef WITH_PYTHON
-	m_globalDict(nullptr),
+	m_globalDict(globalDict),
 	m_gameLogic(nullptr),
 #endif  // WITH_PYTHON
 	m_samples(samples),
@@ -108,13 +105,6 @@ LA_Launcher::LA_Launcher(GHOST_ISystem *system, Main *maggie, Scene *scene, Glob
 LA_Launcher::~LA_Launcher()
 {
 }
-
-#ifdef WITH_PYTHON
-void LA_Launcher::SetPythonGlobalDict(PyObject *globalDict)
-{
-	m_globalDict = globalDict;
-}
-#endif  // WITH_PYTHON
 
 KX_ExitRequest LA_Launcher::GetExitRequested()
 {
@@ -168,7 +158,7 @@ void LA_Launcher::InitEngine()
 	}
 	m_pythonConsole.use = (gm.flag & GAME_PYTHON_CONSOLE);
 
-	m_rasterizer = new RAS_Rasterizer();
+	m_rasterizer.reset(new RAS_Rasterizer());
 
 	// Stereo parameters - Eye Separation from the UI - stereomode from the command-line/UI
 	m_rasterizer->SetStereoMode(m_stereoMode);
@@ -181,7 +171,7 @@ void LA_Launcher::InitEngine()
 	m_savedData.mipmap = m_rasterizer->GetMipmapping();
 
 	// Create the canvas, rasterizer and rendertools.
-	m_canvas = CreateCanvas(m_rasterizer);
+	m_canvas.reset(CreateCanvas(m_rasterizer.get()));
 
 	// Copy current vsync mode to restore at the game end.
 	m_canvas->GetSwapInterval(m_savedData.vsync);
@@ -225,24 +215,24 @@ void LA_Launcher::InitEngine()
 	}
 
 	// Create the inputdevices.
-	m_inputDevice = new DEV_InputDevice();
-	m_eventConsumer = new DEV_EventConsumer(m_system, m_inputDevice, m_canvas);
-	m_system->addEventConsumer(m_eventConsumer);
+	m_inputDevice.reset(new DEV_InputDevice());
+	m_eventConsumer.reset(new DEV_EventConsumer(m_system, m_inputDevice.get(), m_canvas.get()));
+	m_system->addEventConsumer(m_eventConsumer.get());
 
 	// Create a ketsjisystem (only needed for timing and stuff).
-	m_kxsystem = new LA_System();
+	m_kxsystem.reset(new LA_System());
 
-	m_networkMessageManager = new KX_NetworkMessageManager();
+	m_networkMessageManager.reset(new KX_NetworkMessageManager());
 	
 	// Create the ketsjiengine.
-	m_ketsjiEngine = new KX_KetsjiEngine(m_kxsystem);
-	KX_SetActiveEngine(m_ketsjiEngine);
+	m_ketsjiEngine.reset(new KX_KetsjiEngine(m_kxsystem.get()));
+	KX_SetActiveEngine(m_ketsjiEngine.get());
 
 	// Set the devices.
-	m_ketsjiEngine->SetInputDevice(m_inputDevice);
-	m_ketsjiEngine->SetCanvas(m_canvas);
-	m_ketsjiEngine->SetRasterizer(m_rasterizer);
-	m_ketsjiEngine->SetNetworkMessageManager(m_networkMessageManager);
+	m_ketsjiEngine->SetInputDevice(m_inputDevice.get());
+	m_ketsjiEngine->SetCanvas(m_canvas.get());
+	m_ketsjiEngine->SetRasterizer(m_rasterizer.get());
+	m_ketsjiEngine->SetNetworkMessageManager(m_networkMessageManager.get());
 
 	DEV_Joystick::Init();
 
@@ -273,18 +263,18 @@ void LA_Launcher::InitEngine()
 #ifdef WITH_PYTHON
 	KX_SetMainPath(std::string(m_maggie->name));
 	// Some python things.
-	setupGamePython(m_ketsjiEngine, m_maggie, m_globalDict, &m_gameLogic, m_argc, m_argv);
+	setupGamePython(m_ketsjiEngine.get(), m_maggie, m_globalDict, &m_gameLogic, m_argc, m_argv);
 #endif  // WITH_PYTHON
 
 	// Create a scene converter, create and convert the stratingscene.
-	m_converter = new BL_BlenderConverter(m_maggie, m_ketsjiEngine);
-	m_ketsjiEngine->SetConverter(m_converter);
+	m_converter.reset(new BL_BlenderConverter(m_maggie, m_ketsjiEngine.get()));
+	m_ketsjiEngine->SetConverter(m_converter.get());
 
-	m_kxStartScene = new KX_Scene(m_inputDevice,
+	m_kxStartScene = new KX_Scene(m_inputDevice.get(),
 		m_startSceneName,
 		m_startScene,
-		m_canvas,
-		m_networkMessageManager);
+		m_canvas.get(),
+		m_networkMessageManager.get());
 
 	KX_SetActiveScene(m_kxStartScene);
 
@@ -299,7 +289,7 @@ void LA_Launcher::InitEngine()
 
 	m_converter->SetAlwaysUseExpandFraming(GetUseAlwaysExpandFraming());
 
-	m_converter->ConvertScene(m_kxStartScene, m_rasterizer, m_canvas, false);
+	m_converter->ConvertScene(m_kxStartScene, m_rasterizer.get(), m_canvas.get(), false);
 	m_ketsjiEngine->AddScene(m_kxStartScene);
 	m_kxStartScene->Release();
 
@@ -352,38 +342,7 @@ void LA_Launcher::ExitEngine()
 	// Set vsync mode back to original value.
 	m_canvas->SetSwapInterval(m_savedData.vsync);
 
-	if (m_converter) {
-		delete m_converter;
-		m_converter = nullptr;
-	}
-	if (m_ketsjiEngine) {
-		delete m_ketsjiEngine;
-		m_ketsjiEngine = nullptr;
-	}
-	if (m_kxsystem) {
-		delete m_kxsystem;
-		m_kxsystem = nullptr;
-	}
-	if (m_inputDevice) {
-		delete m_inputDevice;
-		m_inputDevice = nullptr;
-	}
-	if (m_eventConsumer) {
-		m_system->removeEventConsumer(m_eventConsumer);
-		delete m_eventConsumer;
-	}
-	if (m_rasterizer) {
-		delete m_rasterizer;
-		m_rasterizer = nullptr;
-	}
-	if (m_canvas) {
-		delete m_canvas;
-		m_canvas = nullptr;
-	}
-	if (m_networkMessageManager) {
-		delete m_networkMessageManager;
-		m_networkMessageManager = nullptr;
-	}
+	m_system->removeEventConsumer(m_eventConsumer.get());
 
 	// Call this after we're sure nothing needs Python anymore (e.g., destructors).
 	ExitPython();
@@ -529,7 +488,7 @@ void LA_Launcher::EngineMainLoop()
 	std::string pythonCode;
 	std::string pythonFileName;
 	if (GetPythonMainLoopCode(pythonCode, pythonFileName)) {
-		// Set python environement variable.
+		// Set python environment variable.
 		KX_SetActiveScene(m_kxStartScene);
 		PHY_SetActiveEnvironment(m_kxStartScene->GetPhysicsEnvironment());
 

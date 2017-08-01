@@ -211,10 +211,11 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		}
 
 		GHOST_ISystem *system = GHOST_ISystem::getSystem();
-		LA_BlenderLauncher launcher = LA_BlenderLauncher(system, blenderdata, scene, &gs, stereoMode, 0, nullptr, C, cam_frame, ar, always_use_expand_framing);
+		LA_BlenderLauncher launcher(system, blenderdata, scene, &gs, stereoMode,
 #ifdef WITH_PYTHON
-		launcher.SetPythonGlobalDict(globalDict);
+									globalDict,
 #endif  // WITH_PYTHON
+									0, nullptr, C, cam_frame, ar, always_use_expand_framing);
 
 		launcher.InitEngine();
 

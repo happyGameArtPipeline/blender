@@ -1372,16 +1372,18 @@ int main(
 							GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
 							GPU_set_linear_mipmap(true);
 						}
-
-						// This argc cant be argc_py_clamped, since python uses it.
-						LA_PlayerLauncher launcher(system, window, maggie, scene, &gs, stereomode, aasamples,
-												   argc, argv, pythonControllerFile);
 #ifdef WITH_PYTHON
 						if (!globalDict) {
 							globalDict = PyDict_New();
 						}
-						launcher.SetPythonGlobalDict(globalDict);
 #endif  // WITH_PYTHON
+
+						// This argc cant be argc_py_clamped, since python uses it.
+						LA_PlayerLauncher launcher(system, window, maggie, scene, &gs, stereomode, aasamples,
+#ifdef WITH_PYTHON
+												   globalDict,
+#endif  // WITH_PYTHON
+												   argc, argv, pythonControllerFile);
 
 						launcher.InitEngine();
 

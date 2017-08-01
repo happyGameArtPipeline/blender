@@ -57,8 +57,12 @@ extern "C" {
 #include "CM_Message.h"
 
 LA_PlayerLauncher::LA_PlayerLauncher(GHOST_ISystem *system, GHOST_IWindow *window, Main *maggie, Scene *scene, GlobalSettings *gs,
-								 RAS_Rasterizer::StereoMode stereoMode, int samples, int argc, char **argv, const std::string& pythonMainLoop)
-	:LA_Launcher(system, maggie, scene, gs, stereoMode, samples, argc, argv),
+								 RAS_Rasterizer::StereoMode stereoMode, int samples,
+#ifdef WITH_PYTHON
+								 PyObject *globalDict,
+#endif  // WITH_PYTHON
+								 int argc, char **argv, const std::string& pythonMainLoop)
+	:LA_Launcher(system, maggie, scene, gs, stereoMode, samples, globalDict, argc, argv),
 	m_mainWindow(window),
 	m_pythonMainLoop(pythonMainLoop)
 {
