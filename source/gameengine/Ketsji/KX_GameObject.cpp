@@ -98,12 +98,6 @@
 
 #include "CM_Message.h"
 
-static mt::vec3 dummy_point= mt::vec3(0.0f, 0.0f, 0.0f);
-static mt::vec3 dummy_scaling = mt::vec3(1.0f, 1.0f, 1.0f);
-static mt::mat3 dummy_orientation = mt::mat3(1.0f, 0.0f, 0.0f,
-                                                     0.0f, 1.0f, 0.0f,
-                                                     0.0f, 0.0f, 1.0f);
-
 KX_GameObject::KX_GameObject(
         void* sgReplicationInfo,
         SG_Callbacks callbacks)
@@ -115,7 +109,7 @@ KX_GameObject::KX_GameObject(
       m_pBlenderObject(nullptr),
       m_pBlenderGroupObject(nullptr),
       m_bIsNegativeScaling(false),
-      m_objectColor(1.0f, 1.0f, 1.0f, 1.0f),
+      m_objectColor(mt::one4),
       m_bVisible(true),
       m_bOccluder(false),
       m_autoUpdateBounds(false),
@@ -1051,7 +1045,7 @@ void KX_GameObject::AlignAxisToVect(const mt::vec3& dir, int axis, float fac)
 			if (fac == 1.0f) {
 				x = vect;
 			} else {
-				x = (vect * fac) + ((orimat * mt::vec3(1.0f, 0.0f, 0.0f)) * (1.0f - fac));
+				x = (vect * fac) + ((orimat * mt::axisX3) * (1.0f - fac));
 				len = x.Length();
 				if (mt::FuzzyZero(len)) x = vect;
 				else x /= len;
@@ -1068,7 +1062,7 @@ void KX_GameObject::AlignAxisToVect(const mt::vec3& dir, int axis, float fac)
 			if (fac == 1.0f) {
 				y = vect;
 			} else {
-				y = (vect * fac) + ((orimat * mt::vec3(0.0f, 1.0f, 0.0f)) * (1.0f - fac));
+				y = (vect * fac) + ((orimat * mt::axisY3) * (1.0f - fac));
 				len = y.Length();
 				if (mt::FuzzyZero(len)) y = vect;
 				else y /= len;
@@ -1085,7 +1079,7 @@ void KX_GameObject::AlignAxisToVect(const mt::vec3& dir, int axis, float fac)
 			if (fac == 1.0f) {
 				z = vect;
 			} else {
-				z = (vect * fac) + ((orimat * mt::vec3(0.0f, 0.0f, 1.0f)) * (1.0f - fac));
+				z = (vect * fac) + ((orimat * mt::axisZ3) * (1.0f - fac));
 				len = z.Length();
 				if (mt::FuzzyZero(len)) z = vect;
 				else z /= len;
@@ -1125,7 +1119,7 @@ float KX_GameObject::GetMass()
 
 mt::vec3 KX_GameObject::GetLocalInertia()
 {
-	mt::vec3 local_inertia(0.0f,0.0f,0.0f);
+	mt::vec3 local_inertia = mt::zero3;
 	if (m_pPhysicsController)
 	{
 		local_inertia = m_pPhysicsController->GetLocalInertia();
@@ -1135,7 +1129,7 @@ mt::vec3 KX_GameObject::GetLocalInertia()
 
 mt::vec3 KX_GameObject::GetLinearVelocity(bool local)
 {
-	mt::vec3 velocity(0.0f,0.0f,0.0f), locvel;
+	mt::vec3 velocity = mt::zero3, locvel;
 	mt::mat3 ori;
 	if (m_pPhysicsController)
 	{
@@ -1154,7 +1148,7 @@ mt::vec3 KX_GameObject::GetLinearVelocity(bool local)
 
 mt::vec3 KX_GameObject::GetAngularVelocity(bool local)
 {
-	mt::vec3 velocity(0.0f,0.0f,0.0f), locvel;
+	mt::vec3 velocity = mt::zero3, locvel;
 	mt::mat3 ori;
 	if (m_pPhysicsController)
 	{
@@ -1193,7 +1187,7 @@ mt::vec3 KX_GameObject::GetVelocity(const mt::vec3& point)
 	{
 		return m_pPhysicsController->GetVelocity(point);
 	}
-	return mt::vec3(0.0f,0.0f,0.0f);
+	return mt::zero3;
 }
 
 // scenegraph node stuff
@@ -2629,7 +2623,7 @@ PyObject *KX_GameObject::pyattr_get_localInertia(PyObjectPlus *self_v, const KX_
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 	if (self->GetPhysicsController1())
 		return PyObjectFrom(self->GetPhysicsController1()->GetLocalInertia());
-	return PyObjectFrom(mt::vec3(0.0f, 0.0f, 0.0f));
+	return PyObjectFrom(mt::zero3);
 #endif
 }
 
@@ -3361,7 +3355,7 @@ PyObject *KX_GameObject::PySetOcclusion(PyObject *args)
 PyObject *KX_GameObject::PyGetVelocity(PyObject *args)
 {
 	// only can get the velocity if we have a physics object connected to us...
-	mt::vec3 point(0.0f,0.0f,0.0f);
+	mt::vec3 point = mt::zero3;
 	PyObject *pypos = nullptr;
 	
 	if (!PyArg_ParseTuple(args, "|O:getVelocity", &pypos) || (pypos && !PyVecTo(pypos, point)))
@@ -3378,10 +3372,10 @@ PyObject *KX_GameObject::PyGetReactionForce()
 #if 0
 	if (GetPhysicsController1())
 		return PyObjectFrom(GetPhysicsController1()->getReactionForce());
-	return PyObjectFrom(dummy_point);
+	return PyObjectFrom(mt::zero3);
 #endif
 	
-	return PyObjectFrom(mt::vec3(0.0f, 0.0f, 0.0f));
+	return PyObjectFrom(mt::zero3);
 }
 
 
@@ -3627,7 +3621,7 @@ KX_PYMETHODDEF_DOC_O(KX_GameObject, getVectTo,
 
 	if (mt::FuzzyZero(distance))
 	{
-		locToDir = toDir = mt::vec3(0.0f,0.0f,0.0f);
+		locToDir = toDir = mt::zero3;
 		distance = 0.0f;
 	} else {
 		toDir.Normalize();

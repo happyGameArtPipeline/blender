@@ -61,7 +61,7 @@ struct RAS_MeshObject::polygonSlot
 	 * used to sort again. */
 	void get(RAS_IDisplayArray *array, int offset, int nvert, const mt::vec3& pnorm)
 	{
-		mt::vec3 center(0.0f, 0.0f, 0.0f);
+		mt::vec3 center = mt::zero3;
 
 		for (unsigned short i = 0; i < nvert; ++i) {
 			m_index[i] = array->GetIndex(offset + i);
