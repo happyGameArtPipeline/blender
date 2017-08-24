@@ -845,10 +845,7 @@ mt::mat4 RAS_Rasterizer::GetFrustumMatrix(StereoMode stereoMode, StereoEye eye, 
 
 mt::mat4 RAS_Rasterizer::GetFrustumMatrix(float left, float right, float bottom, float top, float frustnear, float frustfar)
 {
-	float mat[4][4];
-	perspective_m4(mat, left, right, bottom, top, frustnear, frustfar); // TODO
-
-	return mt::mat4(mat);
+	return mt::mat4::Perspective(left, right, bottom, top, frustnear, frustfar);
 }
 
 mt::mat4 RAS_Rasterizer::GetOrthoMatrix(
@@ -859,10 +856,7 @@ mt::mat4 RAS_Rasterizer::GetOrthoMatrix(
     float frustnear,
     float frustfar)
 {
-	float mat[4][4];
-	orthographic_m4(mat, left, right, bottom, top, frustnear, frustfar);
-
-	return mt::mat4(mat);
+	return mt::mat4::Ortho(left, right, bottom, top, frustnear, frustfar);
 }
 
 // next arguments probably contain redundant info, for later...
