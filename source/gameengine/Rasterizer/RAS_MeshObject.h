@@ -69,8 +69,11 @@ public:
 	 * attribute's names in shader and names of the mesh layers here.
 	 */
 	struct Layer {
-		MLoopUV *uv;
-		MLoopCol *color;
+		/// The type of the layer, uv or color.
+		enum Type {
+			UV,
+			COLOR
+		} type;
 		/// The index of the color or uv layer in the vertices.
 		unsigned short index;
 		/// The name of the color or uv layer used to find corresponding material attributes.
@@ -85,6 +88,10 @@ public:
 		unsigned short activeColor;
 		// The active uv layer index as default.
 		unsigned short activeUv;
+		// The number of uv layers.
+		unsigned short uvCount;
+		// The number of color layers.
+		unsigned short colorCount;
 	};
 
 private:
@@ -93,6 +100,8 @@ private:
 	LayersInfo m_layersInfo;
 
 	std::vector<RAS_Polygon> m_polygons;
+
+	unsigned int m_origVertexCount;
 
 	/// The mesh bounding box.
 	RAS_BoundingBox *m_boundingBox;
@@ -125,26 +134,14 @@ public:
 
 	// mesh construction
 	RAS_MeshMaterial *AddMaterial(RAS_MaterialBucket *bucket, unsigned int index, const RAS_TexVertFormat& format);
-	void AddLine(RAS_MeshMaterial *meshmat, unsigned int v1, unsigned int v2);
-	virtual RAS_Polygon *AddPolygon(RAS_MeshMaterial *meshmat, int numverts, unsigned int indices[4],
-									bool visible, bool collider, bool twoside);
-	virtual unsigned int AddVertex(
-				RAS_MeshMaterial *meshmat,
-				const MT_Vector3& xyz,
-				const MT_Vector2 * const uvs,
-				const MT_Vector4& tangent,
-				const unsigned int *rgba,
-				const MT_Vector3& normal,
-				const bool flat,
-				const unsigned int origindex);
 
 	// vertex and polygon acces
 	RAS_IDisplayArray *GetDisplayArray(unsigned int matid) const;
 	RAS_ITexVert *GetVertex(unsigned int matid, unsigned int index);
-	const float *GetVertexLocation(unsigned int orig_index);
 
 	int NumPolygons();
 	RAS_Polygon *GetPolygon(int num);
+	std::vector<RAS_Polygon> *GetPolygons();
 
 	RAS_BoundingBox *GetBoundingBox() const;
 	// buckets
@@ -159,17 +156,6 @@ public:
 	 * WARNING: Always call when shader in the material are valid.
 	 */
 	void GenerateAttribLayers();
-
-	bool HasColliderPolygon();
-
-	// for construction to find shared vertices
-	struct SharedVertex
-	{
-		RAS_IDisplayArray *m_darray;
-		int m_offset;
-	};
-
-	std::vector<std::vector<SharedVertex> > m_sharedvertex_map;
 };
 
 #endif  // __RAS_MESHOBJECT_H__

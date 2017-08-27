@@ -79,14 +79,6 @@ public:
 	{
 		return m_bmesh;
 	}
-	virtual RAS_MeshObject *GetRasMesh()
-	{
-		return m_mesh;
-	}
-	virtual float(*GetTransVerts(int *tot))[3]
-	{
-		*tot = m_tvtot; return m_transverts;
-	}
 
 protected:
 	Mesh *m_bmesh;

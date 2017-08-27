@@ -80,10 +80,6 @@ public:
 	virtual void ProcessReplica();
 	virtual RAS_Deformer *GetReplica();
 	virtual ~BL_ModifierDeformer();
-	virtual bool UseVertexArray()
-	{
-		return false;
-	}
 
 	bool Update();
 	virtual bool Apply(RAS_MeshMaterial *meshmat, RAS_IDisplayArray *array);
@@ -91,14 +87,11 @@ public:
 	{
 		m_lastModifierUpdate = -1.0;
 	}
-	virtual DerivedMesh *GetFinalMesh()
-	{
-		return m_dm;
-	}
-	// The derived mesh returned by this function must be released!
-	virtual DerivedMesh *GetPhysicsMesh();
 
 protected:
+	void UpdateBounds();
+	virtual void UpdateTransverts();
+
 	double m_lastModifierUpdate;
 	Scene *m_scene;
 	DerivedMesh *m_dm;

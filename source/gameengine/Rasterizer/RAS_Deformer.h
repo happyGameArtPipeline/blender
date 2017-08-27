@@ -77,37 +77,26 @@ public:
 	{
 		return false;
 	}
-	virtual bool UseVertexArray()
-	{
-		return true;
-	}
+
 	// true when deformer produces varying vertex (shape or armature)
 	bool IsDynamic()
 	{
 		return m_bDynamic;
 	}
-	virtual struct DerivedMesh* GetFinalMesh()
-	{
-		return nullptr;
-	}
-	virtual struct DerivedMesh* GetPhysicsMesh()
-	{
-		return nullptr;
-	}
-	virtual class RAS_MeshObject* GetRasMesh()
-	{
-		return nullptr;
-	}
-	virtual float (* GetTransVerts(int *tot))[3]	{	*tot= 0; return nullptr; }
 
 	RAS_BoundingBox *GetBoundingBox() const
 	{
 		return m_boundingBox;
 	}
 
+	RAS_MeshObject *GetMesh() const;
+
 	void AddDisplayArray(RAS_IDisplayArray *array, RAS_DisplayArrayBucket *arrayBucket);
+	RAS_IDisplayArray *GetDisplayArray(unsigned short index) const;
 
 protected:
+	unsigned int m_origVertexCount;
+
 	RAS_MeshObject *m_mesh;
 	bool m_bDynamic;
 

@@ -115,6 +115,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 									   float *&dvertices, int &ndvertsuniq, unsigned short *&dtris, 
 									   int& ndtris, int &vertsPerPoly)
 {
+#if 0 // TODO
     DerivedMesh* dm = mesh_create_derived_no_virtual(GetScene()->GetBlenderScene(), GetBlenderObject(),
 													nullptr, CD_MASK_MESH);
 	CustomData *pdata = dm->getPolyDataLayout(dm);
@@ -280,7 +281,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 		ndtris = npolys;
 	}
 	dm->release(dm);
-	
+#endif
 	return true;
 }
 

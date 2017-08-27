@@ -58,7 +58,8 @@ struct PolygonSort
 RAS_IDisplayArray::RAS_IDisplayArray(PrimitiveType type, const RAS_TexVertFormat& format)
 	:m_type(type),
 	m_modifiedFlag(NONE_MODIFIED),
-	m_format(format)
+	m_format(format),
+	m_maxOrigIndex(0)
 {
 }
 

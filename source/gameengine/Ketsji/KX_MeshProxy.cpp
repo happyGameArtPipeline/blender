@@ -149,13 +149,9 @@ PyObject *KX_MeshProxy::PyGetVertexArrayLength(PyObject *args, PyObject *kwds)
 	if (!PyArg_ParseTuple(args, "i:getVertexArrayLength", &matid))
 		return nullptr;
 
-	RAS_MeshMaterial *mmat = m_meshobj->GetMeshMaterial(matid); /* can be nullptr*/
-
-	if (mmat) {
-		RAS_IDisplayArray *array = mmat->GetDisplayArray();
-		if (array) {
-			length = array->GetVertexCount();
-		}
+	RAS_IDisplayArray *array = m_meshobj->GetDisplayArray(matid);
+	if (array) {
+		length = array->GetVertexCount();
 	}
 
 	return PyLong_FromLong(length);
@@ -232,8 +228,7 @@ PyObject *KX_MeshProxy::PyTransform(PyObject *args, PyObject *kwds)
 			continue;
 		}
 
-		RAS_MeshMaterial *mmat = m_meshobj->GetMeshMaterial(i);
-		RAS_IDisplayArray *array = mmat->GetDisplayArray();
+		RAS_IDisplayArray *array = m_meshobj->GetDisplayArray(i);
 		ok = true;
 
 		for (unsigned int j = 0, size = array->GetVertexCount(); j < size; ++j) {
@@ -302,8 +297,7 @@ PyObject *KX_MeshProxy::PyTransformUV(PyObject *args, PyObject *kwds)
 			continue;
 		}
 
-		RAS_MeshMaterial *mmat = m_meshobj->GetMeshMaterial(i);
-		RAS_IDisplayArray *array = mmat->GetDisplayArray();
+		RAS_IDisplayArray *array = m_meshobj->GetDisplayArray(i);
 		ok = true;
 
 		for (unsigned int j = 0, size = array->GetVertexCount(); j < size; ++j) {

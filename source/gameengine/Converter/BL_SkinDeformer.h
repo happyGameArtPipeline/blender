@@ -111,7 +111,7 @@ protected:
 	void BlenderDeformVerts();
 	void BGEDeformVerts();
 
-	void UpdateTransverts();
+	virtual void UpdateTransverts();
 };
 
 #endif  /* __BL_SKINDEFORMER_H__ */

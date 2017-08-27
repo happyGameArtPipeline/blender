@@ -913,7 +913,7 @@ ImageRender::ImageRender (KX_Scene *scene, KX_GameObject *observer, KX_GameObjec
 			RAS_Polygon* polygon = mesh->GetPolygon(polygonIndex);
 			if (polygon->GetMaterial()->GetPolyMaterial() == mat)
 			{
-				RAS_ITexVert *v1, *v2, *v3, *v4;
+				RAS_ITexVert *v1, *v2, *v3;
 				float normal[3];
 				float area;
 				// this polygon is part of the mirror
@@ -923,14 +923,7 @@ ImageRender::ImageRender (KX_Scene *scene, KX_GameObject *observer, KX_GameObjec
 				mirrorVerts.push_back(v1);
 				mirrorVerts.push_back(v2);
 				mirrorVerts.push_back(v3);
-				if (polygon->VertexCount() == 4) {
-					v4 = polygon->GetVertex(3);
-					mirrorVerts.push_back(v4);
-					area = normal_quad_v3(normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ(), (float*)v4->getXYZ());
-				}
-				else {
-					area = normal_tri_v3(normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ());
-				}
+				area = normal_tri_v3(normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ());
 				area = fabs(area);
 				mirrorArea += area;
 				mul_v3_fl(normal, area);

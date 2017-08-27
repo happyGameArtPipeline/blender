@@ -172,12 +172,6 @@ PyObject *KX_PolyProxy::pyattr_get_v3(PyObjectPlus *self_v, const KX_PYATTRIBUTE
 
 PyObject *KX_PolyProxy::pyattr_get_v4(PyObjectPlus *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_PolyProxy* self = static_cast<KX_PolyProxy*>(self_v);
-
-	if (3 < self->m_polygon->VertexCount())
-	{
-		return PyLong_FromLong(self->m_polygon->GetVertexOffset(3));
-	}
 	return PyLong_FromLong(0);
 }
 
@@ -195,16 +189,14 @@ PyObject *KX_PolyProxy::pyattr_get_collide(PyObjectPlus *self_v, const KX_PYATTR
 
 static int kx_poly_proxy_get_vertices_size_cb(void *self_v)
 {
-	return ((KX_PolyProxy *)self_v)->GetPolygon()->VertexCount();
+	return 3;
 }
 
 static PyObject *kx_poly_proxy_get_vertices_item_cb(void *self_v, int index)
 {
 	KX_PolyProxy *self = static_cast<KX_PolyProxy *>(self_v);
 	RAS_Polygon *polygon = self->GetPolygon();
-	int vertindex = polygon->GetVertexOffset(index);
-	RAS_IDisplayArray *array = polygon->GetDisplayArray();
-	KX_VertexProxy *vert = new KX_VertexProxy(array, array->GetVertex(vertindex));
+	KX_VertexProxy *vert = new KX_VertexProxy(polygon->GetDisplayArray(), polygon->GetVertex(index));
 
 	return vert->GetProxy();
 }
@@ -236,9 +228,9 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterialIndex,
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getNumVertex,
-"getNumVertex() : returns the number of vertex of the polygon, 3 or 4\n")
+"getNumVertex() : returns the number of vertex of the polygon\n")
 {
-	return PyLong_FromLong(m_polygon->VertexCount());
+	return PyLong_FromLong(3);
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, isVisible,
@@ -267,9 +259,8 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getTextureName,
 
 KX_PYMETHODDEF_DOC(KX_PolyProxy, getVertexIndex,
 "getVertexIndex(vertex) : returns the mesh vertex index of a polygon vertex\n"
-"vertex: index of the vertex in the polygon: 0->3\n"
-"return value can be used to retrieve the vertex details through mesh proxy\n"
-"Note: getVertexIndex(3) on a triangle polygon returns 0\n")
+"vertex: index of the vertex in the polygon: 0->2\n"
+"return value can be used to retrieve the vertex details through mesh proxy\n")
 {
 	int index;
 	if (!PyArg_ParseTuple(args,"i:getVertexIndex",&index))
@@ -278,10 +269,10 @@ KX_PYMETHODDEF_DOC(KX_PolyProxy, getVertexIndex,
 	}
 	if (index < 0 || index > 3)
 	{
-		PyErr_SetString(PyExc_AttributeError, "poly.getVertexIndex(int): KX_PolyProxy, expected an index between 0-3");
+		PyErr_SetString(PyExc_AttributeError, "poly.getVertexIndex(int): KX_PolyProxy, expected an index between 0-2");
 		return nullptr;
 	}
-	if (index < m_polygon->VertexCount())
+	if (index < 3)
 	{
 		return PyLong_FromLong(m_polygon->GetVertexOffset(index));
 	}

@@ -1777,20 +1777,7 @@ struct OcclusionBuffer {
 		transformM(c, p[2]);
 		clipDraw<3, WriteOCL>(p, face, btScalar(0.0f));
 	}
-	// add a quad (in model coordinate)
-	void appendOccluderM(const float *a,
-	                     const float *b,
-	                     const float *c,
-	                     const float *d,
-	                     const float face)
-	{
-		btVector4 p[4];
-		transformM(a, p[0]);
-		transformM(b, p[1]);
-		transformM(c, p[2]);
-		transformM(d, p[3]);
-		clipDraw<4, WriteOCL>(p, face, btScalar(0.0f));
-	}
+
 	// query occluder for a box (c=center, e=extend) in world coordinate
 	inline bool queryOccluderW(const btVector3 &c,
 	                           const btVector3 &e)
@@ -1875,27 +1862,15 @@ struct  DbvtCullingCallback : btDbvt::ICollide {
 				// walk through the meshes and for each add to buffer
 				for (int i = 0; i < gameobj->GetMeshCount(); i++) {
 					RAS_MeshObject *meshobj = gameobj->GetMesh(i);
-					const float *v1, *v2, *v3, *v4;
+					const float *v1, *v2, *v3;
 
 					int polycount = meshobj->NumPolygons();
 					for (int j = 0; j < polycount; j++) {
 						RAS_Polygon *poly = meshobj->GetPolygon(j);
-						switch (poly->VertexCount())
-						{
-							case 3:
-								v1 = poly->GetVertex(0)->getXYZ();
-								v2 = poly->GetVertex(1)->getXYZ();
-								v3 = poly->GetVertex(2)->getXYZ();
-								m_ocb->appendOccluderM(v1, v2, v3, ((poly->IsTwoside()) ? 0.f : face));
-								break;
-							case 4:
-								v1 = poly->GetVertex(0)->getXYZ();
-								v2 = poly->GetVertex(1)->getXYZ();
-								v3 = poly->GetVertex(2)->getXYZ();
-								v4 = poly->GetVertex(3)->getXYZ();
-								m_ocb->appendOccluderM(v1, v2, v3, v4, ((poly->IsTwoside()) ? 0.f : face));
-								break;
-						}
+						v1 = poly->GetVertex(0)->getXYZ();
+						v2 = poly->GetVertex(1)->getXYZ();
+						v3 = poly->GetVertex(2)->getXYZ();
+						m_ocb->appendOccluderM(v1, v2, v3, ((poly->IsTwoside()) ? 0.f : face));
 					}
 				}
 			}
@@ -2678,7 +2653,7 @@ CcdPhysicsEnvironment *CcdPhysicsEnvironment::Create(Scene *blenderscene, bool v
 }
 
 void CcdPhysicsEnvironment::ConvertObject(BL_BlenderSceneConverter& converter, KX_GameObject *gameobj, RAS_MeshObject *meshobj,
-										  DerivedMesh *dm, KX_Scene *kxscene, PHY_ShapeProps *shapeprops, PHY_IMotionState *motionstate,
+										  KX_Scene *kxscene, PHY_ShapeProps *shapeprops, PHY_IMotionState *motionstate,
 										  int activeLayerBitInfo, bool isCompoundChild, bool hasCompoundChildren)
 {
 	Object *blenderobject = gameobj->GetBlenderObject();
@@ -2901,7 +2876,18 @@ void CcdPhysicsEnvironment::ConvertObject(BL_BlenderSceneConverter& converter, K
 		}
 		case OB_BOUND_CONVEX_HULL:
 		{
-			shapeInfo->SetMesh(meshobj, dm, true);
+			// Convex shapes can be shared, check first if we already have a shape on that mesh.
+			CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, gameobj->GetDeformer(), PHY_SHAPE_POLYTOPE);
+			if (sharedShapeInfo) {
+				shapeInfo->Release();
+				shapeInfo = sharedShapeInfo;
+				shapeInfo->AddRef();
+			}
+			else {
+				shapeInfo->m_shapeType = PHY_SHAPE_POLYTOPE;
+				shapeInfo->UpdateMesh(gameobj, meshobj);
+			}
+
 			bm = shapeInfo->CreateBulletShape(ci.m_margin);
 			break;
 		}
@@ -2917,15 +2903,16 @@ void CcdPhysicsEnvironment::ConvertObject(BL_BlenderSceneConverter& converter, K
 		}
 		case OB_BOUND_TRIANGLE_MESH:
 		{
-			// mesh shapes can be shared, check first if we already have a shape on that mesh
-			class CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, dm, false);
-			if (sharedShapeInfo != nullptr) {
+			// Mesh shapes can be shared, check first if we already have a shape on that mesh.
+			CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, gameobj->GetDeformer(), PHY_SHAPE_MESH);
+			if (sharedShapeInfo) {
 				shapeInfo->Release();
 				shapeInfo = sharedShapeInfo;
 				shapeInfo->AddRef();
 			}
 			else {
-				shapeInfo->SetMesh(meshobj, dm, false);
+				shapeInfo->m_shapeType = PHY_SHAPE_MESH;
+				shapeInfo->UpdateMesh(gameobj, meshobj);
 			}
 
 			// Soft bodies can benefit from welding, don't do it on non-soft bodies

@@ -791,11 +791,6 @@ void RAS_Rasterizer::IndexPrimitivesBatching(RAS_IStorageInfo *storageInfo, cons
 	m_storage->IndexPrimitivesBatching(static_cast<VBO *>(storageInfo), indices, counts);
 }
 
-void RAS_Rasterizer::IndexPrimitivesDerivedMesh(DrawType drawingMode, RAS_MeshSlot *ms)
-{
-	m_impl->DrawDerivedMesh(ms, drawingMode);
-}
-
 void RAS_Rasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 {
 	SetMatrixMode(RAS_PROJECTION);
