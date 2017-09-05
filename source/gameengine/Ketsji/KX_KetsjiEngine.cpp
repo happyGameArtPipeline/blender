@@ -362,7 +362,7 @@ bool KX_KetsjiEngine::NextFrame()
 		frames = m_maxLogicFrame;
 	}
 
-	while (frames) {
+	for (unsigned short i = 0; i < frames; ++i) {
 		m_frameTime += framestep;
 
 		m_converter->MergeAsyncLoads();
@@ -435,8 +435,6 @@ bool KX_KetsjiEngine::NextFrame()
 		m_logger.StartLog(tc_network, m_kxsystem->GetTimeInSeconds());
 		m_networkMessageManager->ClearMessages();
 
-		m_logger.StartLog(tc_services, m_kxsystem->GetTimeInSeconds());
-
 		// update system devices
 		m_logger.StartLog(tc_logic, m_kxsystem->GetTimeInSeconds());
 		if (m_inputDevice) {
@@ -446,8 +444,6 @@ bool KX_KetsjiEngine::NextFrame()
 		UpdateSuspendedScenes(framestep);
 		// scene management
 		ProcessScheduledScenes();
-
-		frames--;
 	}
 
 	// Start logging time spent outside main loop
