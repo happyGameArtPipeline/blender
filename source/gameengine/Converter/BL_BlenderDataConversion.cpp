@@ -374,7 +374,7 @@ static void GetUvRgba(const RAS_MeshObject::LayerList& layers, std::vector<MLoop
 
 	for (const RAS_MeshObject::Layer& layer : layers) {
 		const unsigned short index = layer.index;
-		switch (layer.index) {
+		switch (layer.type) {
 			case RAS_MeshObject::Layer::COLOR:
 			{
 				const MLoopCol& col = colorLayers[index][loop];
