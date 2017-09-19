@@ -544,7 +544,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh *me, Object *blenderobj, KX_Scene *scene, BL
 void BL_ConvertDerivedMeshToArray(DerivedMesh *dm, Mesh *me, const std::vector<BL_MeshMaterial>& mats,
 		const RAS_MeshObject::LayersInfo& layersInfo, std::vector<RAS_Polygon> *polygons)
 {
-	DM_ensure_looptri(dm);
+	DM_ensure_looptri_data(dm);
 
 	const MVert *mverts = dm->getVertArray(dm);
 	const int totverts = dm->getNumVerts(dm);
