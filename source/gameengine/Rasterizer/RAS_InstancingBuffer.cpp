@@ -29,6 +29,7 @@
 #include "RAS_InstancingBuffer.h"
 #include "RAS_Rasterizer.h"
 #include "RAS_MeshUser.h"
+#include "BLI_math.h"
 
 extern "C" {
 	// To avoid include BKE_DerivedMesh.h.
@@ -41,11 +42,13 @@ RAS_InstancingBuffer::RAS_InstancingBuffer()
 	m_matrixOffset(nullptr),
 	m_positionOffset(nullptr),
 	m_colorOffset(nullptr),
+	m_matrixInvOffset(nullptr),
 	m_stride(sizeof(RAS_InstancingBuffer::InstancingObject))
 {
 	m_matrixOffset = (void *)((InstancingObject *)nullptr)->matrix;
 	m_positionOffset = (void *)((InstancingObject *)nullptr)->position;
 	m_colorOffset = (void *)((InstancingObject *)nullptr)->color;
+	m_matrixInvOffset = (void *)((InstancingObject *)nullptr)->matrixinv;
 }
 
 RAS_InstancingBuffer::~RAS_InstancingBuffer()
@@ -95,6 +98,26 @@ void RAS_InstancingBuffer::Update(RAS_Rasterizer *rasty, int drawingmode, RAS_Me
 		data.position[0] = mat[12];
 		data.position[1] = mat[13];
 		data.position[2] = mat[14];
+
+		data.matrixinv[0] = data.matrix[0];
+		data.matrixinv[1] = data.matrix[1];
+		data.matrixinv[2] = data.matrix[2];
+		data.matrixinv[3] = data.position[0];
+		data.matrixinv[4] = data.matrix[3];
+		data.matrixinv[5] = data.matrix[4];
+		data.matrixinv[6] = data.matrix[5];
+		data.matrixinv[7] = data.position[1];
+		data.matrixinv[8] = data.matrix[6];
+		data.matrixinv[9] = data.matrix[7];
+		data.matrixinv[10] = data.matrix[8];
+		data.matrixinv[11] = data.position[2];
+		data.matrixinv[12] = 0.0f;
+		data.matrixinv[13] = 0.0f;
+		data.matrixinv[14] = 0.0f;
+		data.matrixinv[15] = 1.0f;
+
+		transpose_m4((float(*)[4])data.matrixinv);
+		invert_m4((float(*)[4])data.matrixinv);
 
 		const MT_Vector4& color = ms->m_meshUser->GetColor();
 		data.color[0] = color[0] * 255.0f;

@@ -649,10 +649,11 @@ void GPU_shader_bind_attribute(GPUShader *shader, int location, const char *name
 }
 
 // Used only for VSM shader with geometry instancing support.
-void GPU_shader_bind_instancing_attrib(GPUShader *shader, void *matrixoffset, void *positionoffset, unsigned int stride)
+void GPU_shader_bind_instancing_attrib(GPUShader *shader, void *matrixoffset, void *matrixinvoffset, void *positionoffset, unsigned int stride)
 {
 	int posloc = GPU_shader_get_attribute(shader, GPU_builtin_name(GPU_INSTANCING_POSITION_ATTRIB));
 	int matloc = GPU_shader_get_attribute(shader, GPU_builtin_name(GPU_INSTANCING_MATRIX_ATTRIB));
+	int matinvloc = GPU_shader_get_attribute(shader, GPU_builtin_name(GPU_INSTANCING_MATRIX_INVERSE_ATTRIB));
 
 	// Matrix
 	if (matloc != -1) {
@@ -669,6 +670,23 @@ void GPU_shader_bind_instancing_attrib(GPUShader *shader, void *matrixoffset, vo
 		glVertexAttribDivisorARB(matloc + 2, 1);
 	}
 
+	if (matinvloc != -1) {
+		glEnableVertexAttribArrayARB(matinvloc);
+		glEnableVertexAttribArrayARB(matinvloc + 1);
+		glEnableVertexAttribArrayARB(matinvloc + 2);
+		glEnableVertexAttribArrayARB(matinvloc + 3);
+
+		glVertexAttribPointerARB(matinvloc, 4, GL_FLOAT, GL_FALSE, stride, matrixinvoffset);
+		glVertexAttribPointerARB(matinvloc + 1, 4, GL_FLOAT, GL_FALSE, stride, ((char *)matrixinvoffset) + 4 * sizeof(float));
+		glVertexAttribPointerARB(matinvloc + 2, 4, GL_FLOAT, GL_FALSE, stride, ((char *)matrixinvoffset) + 8 * sizeof(float));
+		glVertexAttribPointerARB(matinvloc + 3, 4, GL_FLOAT, GL_FALSE, stride, ((char *)matrixinvoffset) + 12 * sizeof(float));
+
+		glVertexAttribDivisorARB(matinvloc, 1);
+		glVertexAttribDivisorARB(matinvloc + 1, 1);
+		glVertexAttribDivisorARB(matinvloc + 2, 1);
+		glVertexAttribDivisorARB(matinvloc + 3, 1);
+	}
+
 	// Position
 	if (posloc != -1) {
 		glEnableVertexAttribArrayARB(posloc);
@@ -681,6 +699,7 @@ void GPU_shader_unbind_instancing_attrib(GPUShader *shader)
 {
 	int posloc = GPU_shader_get_attribute(shader, GPU_builtin_name(GPU_INSTANCING_POSITION_ATTRIB));
 	int matloc = GPU_shader_get_attribute(shader, GPU_builtin_name(GPU_INSTANCING_MATRIX_ATTRIB));
+	int matinvloc = GPU_shader_get_attribute(shader, GPU_builtin_name(GPU_INSTANCING_MATRIX_INVERSE_ATTRIB));
 
 	// Matrix
 	if (matloc != -1) {
@@ -691,6 +710,18 @@ void GPU_shader_unbind_instancing_attrib(GPUShader *shader)
 		glVertexAttribDivisorARB(matloc, 0);
 		glVertexAttribDivisorARB(matloc + 1, 0);
 		glVertexAttribDivisorARB(matloc + 2, 0);
+	}
+
+	if (matinvloc != -1) {
+		glDisableVertexAttribArrayARB(matinvloc);
+		glDisableVertexAttribArrayARB(matinvloc + 1);
+		glDisableVertexAttribArrayARB(matinvloc + 2);
+		glDisableVertexAttribArrayARB(matinvloc + 3);
+
+		glVertexAttribDivisorARB(matinvloc, 0);
+		glVertexAttribDivisorARB(matinvloc + 1, 0);
+		glVertexAttribDivisorARB(matinvloc + 2, 0);
+		glVertexAttribDivisorARB(matinvloc + 3, 0);
 	}
 
 	// Position

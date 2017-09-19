@@ -130,6 +130,7 @@ struct GPUMaterial {
 
 	int ininstposloc;
 	int ininstmatloc;
+	int ininstmatinvloc;
 	int ininstcolloc;
 
 	bool use_instancing;
@@ -288,6 +289,7 @@ static int gpu_material_construct_end(GPUMaterial *material, const char *passnam
 		if (material->use_instancing) {
 			material->ininstposloc = GPU_shader_get_attribute(shader, GPU_builtin_name(GPU_INSTANCING_POSITION_ATTRIB));
 			material->ininstmatloc = GPU_shader_get_attribute(shader, GPU_builtin_name(GPU_INSTANCING_MATRIX_ATTRIB));
+			material->ininstmatinvloc = GPU_shader_get_attribute(shader, GPU_builtin_name(GPU_INSTANCING_MATRIX_INVERSE_ATTRIB));
 			material->ininstcolloc = GPU_shader_get_attribute(shader, GPU_builtin_name(GPU_INSTANCING_COLOR_ATTRIB));
 		}
 		if (material->builtins & GPU_OBJECT_INFO)
@@ -349,7 +351,7 @@ bool GPU_material_use_instancing(GPUMaterial *material)
 	return material->use_instancing;
 }
 
-void GPU_material_bind_instancing_attrib(GPUMaterial *material, void *matrixoffset, void *positionoffset, void *coloroffset, unsigned int stride)
+void GPU_material_bind_instancing_attrib(GPUMaterial *material, void *matrixoffset, void *matrixinvoffset, void *positionoffset, void *coloroffset, unsigned int stride)
 {
 	// Matrix
 	if (material->ininstmatloc != -1) {
@@ -364,6 +366,24 @@ void GPU_material_bind_instancing_attrib(GPUMaterial *material, void *matrixoffs
 		glVertexAttribDivisorARB(material->ininstmatloc, 1);
 		glVertexAttribDivisorARB(material->ininstmatloc + 1, 1);
 		glVertexAttribDivisorARB(material->ininstmatloc + 2, 1);
+	}
+
+	// Matrix
+	if (material->ininstmatinvloc != -1) {
+		glEnableVertexAttribArrayARB(material->ininstmatinvloc);
+		glEnableVertexAttribArrayARB(material->ininstmatinvloc + 1);
+		glEnableVertexAttribArrayARB(material->ininstmatinvloc + 2);
+		glEnableVertexAttribArrayARB(material->ininstmatinvloc + 3);
+
+		glVertexAttribPointerARB(material->ininstmatinvloc, 4, GL_FLOAT, GL_FALSE, stride, matrixinvoffset);
+		glVertexAttribPointerARB(material->ininstmatinvloc + 1, 4, GL_FLOAT, GL_FALSE, stride, ((char *)matrixinvoffset) + 4 * sizeof(float));
+		glVertexAttribPointerARB(material->ininstmatinvloc + 2, 4, GL_FLOAT, GL_FALSE, stride, ((char *)matrixinvoffset) + 8 * sizeof(float));
+		glVertexAttribPointerARB(material->ininstmatinvloc + 3, 4, GL_FLOAT, GL_FALSE, stride, ((char *)matrixinvoffset) + 12 * sizeof(float));
+
+		glVertexAttribDivisorARB(material->ininstmatinvloc, 1);
+		glVertexAttribDivisorARB(material->ininstmatinvloc + 1, 1);
+		glVertexAttribDivisorARB(material->ininstmatinvloc + 2, 1);
+		glVertexAttribDivisorARB(material->ininstmatinvloc + 3, 1);
 	}
 
 	// Position
@@ -392,6 +412,19 @@ void GPU_material_unbind_instancing_attrib(GPUMaterial *material)
 		glVertexAttribDivisorARB(material->ininstmatloc, 0);
 		glVertexAttribDivisorARB(material->ininstmatloc + 1, 0);
 		glVertexAttribDivisorARB(material->ininstmatloc + 2, 0);
+	}
+
+	// Matrix inverse
+	if (material->ininstmatinvloc != -1) {
+		glDisableVertexAttribArrayARB(material->ininstmatinvloc);
+		glDisableVertexAttribArrayARB(material->ininstmatinvloc + 1);
+		glDisableVertexAttribArrayARB(material->ininstmatinvloc + 2);
+		glDisableVertexAttribArrayARB(material->ininstmatinvloc + 3);
+
+		glVertexAttribDivisorARB(material->ininstmatinvloc, 0);
+		glVertexAttribDivisorARB(material->ininstmatinvloc + 1, 0);
+		glVertexAttribDivisorARB(material->ininstmatinvloc + 2, 0);
+		glVertexAttribDivisorARB(material->ininstmatinvloc + 3, 0);
 	}
 
 	// Position

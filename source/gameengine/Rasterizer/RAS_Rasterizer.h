@@ -735,7 +735,7 @@ public:
 
 	void SetOverrideShader(OverrideShaderType type);
 	OverrideShaderType GetOverrideShader();
-	void ActivateOverrideShaderInstancing(void *matrixoffset, void *positionoffset, unsigned int stride);
+	void ActivateOverrideShaderInstancing(void *matrixoffset, void *matrixinvoffset, void *positionoffset, unsigned int stride);
 	void DesactivateOverrideShaderInstancing();
 
 	/// \see KX_RayCast

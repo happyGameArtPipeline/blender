@@ -48,7 +48,7 @@ void KX_TextMaterial::Desactivate(RAS_Rasterizer *rasty)
 {
 }
 
-void KX_TextMaterial::ActivateInstancing(RAS_Rasterizer *rasty, void *matrixoffset, void *positionoffset, void *coloroffset, unsigned int stride)
+void KX_TextMaterial::ActivateInstancing(RAS_Rasterizer *rasty, void *matrixoffset, void *matrixinvoffset, void *positionoffset, void *coloroffset, unsigned int stride)
 {
 }
 

@@ -45,6 +45,8 @@ class RAS_InstancingBuffer
 	void *m_positionOffset;
 	/// The color offset in the VBO.
 	void *m_colorOffset;
+	/// The matrix inverse in the VBO
+	void *m_matrixInvOffset;
 	/// The instance structure stride in the VBO.
 	unsigned int m_stride;
 
@@ -52,6 +54,7 @@ class RAS_InstancingBuffer
 	struct InstancingObject
 	{
 		float matrix[9];
+		float matrixinv[16];
 		float position[3];
 		unsigned char color[4];
 	};
@@ -85,6 +88,10 @@ public:
 	inline void *GetColorOffset() const
 	{
 		return m_colorOffset;
+	}
+	inline void *GetMatrixInvOffset() const
+	{
+		return m_matrixInvOffset;
 	}
 	inline unsigned int GetStride() const
 	{

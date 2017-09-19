@@ -194,10 +194,10 @@ bool BL_BlenderShader::UseInstancing() const
 	return (GPU_instanced_drawing_support() && (m_mat->shade_flag & MA_INSTANCING));
 }
 
-void BL_BlenderShader::ActivateInstancing(void *matrixoffset, void *positionoffset, void *coloroffset, unsigned int stride)
+void BL_BlenderShader::ActivateInstancing(void *matrixoffset, void *matrixinvoffset, void *positionoffset, void *coloroffset, unsigned int stride)
 {
 	if (Ok()) {
-		GPU_material_bind_instancing_attrib(m_gpuMat, matrixoffset, positionoffset, coloroffset, stride);
+		GPU_material_bind_instancing_attrib(m_gpuMat, matrixoffset, matrixinvoffset, positionoffset, coloroffset, stride);
 	}
 }
 

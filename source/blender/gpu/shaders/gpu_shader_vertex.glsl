@@ -9,20 +9,19 @@ out block {
 
 #ifdef USE_INSTANCING
 in mat3 ininstmatrix;
+in mat4 ininstinvmatrix;
 in vec3 ininstposition;
 in vec4 ininstcolor;
 
-varying vec4 varinstcolor;
-varying mat4 varinstmat;
-varying mat4 varinstinvmat;
-varying mat4 varinstlocaltoviewmat;
-varying mat4 varinstinvlocaltoviewmat;
+out vec4 varinstcolor;
+out mat4 varinstmat;
+out mat4 varinstinvmat;
 
 uniform mat4 unfviewmat;
 #endif
 
-varying vec3 varposition;
-varying vec3 varnormal;
+out vec3 varposition;
+out vec3 varnormal;
 
 #ifdef CLIP_WORKAROUND
 varying float gl_ClipDistance[6];
@@ -110,9 +109,7 @@ void main()
 						vec4(0.0, 0.0, 0.0, 1.0));
 
 	varinstmat = transpose(instmat);
-	varinstlocaltoviewmat = unfviewmat * varinstmat;
-	varinstinvmat = inverse(varinstmat);
-	varinstinvlocaltoviewmat = inverse(varinstlocaltoviewmat);
+	varinstinvmat = ininstinvmatrix;
 	varinstcolor = ininstcolor;
 
 	position *= instmat;

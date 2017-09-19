@@ -1216,11 +1216,11 @@ RAS_Rasterizer::OverrideShaderType RAS_Rasterizer::GetOverrideShader()
 	return m_overrideShader;
 }
 
-void RAS_Rasterizer::ActivateOverrideShaderInstancing(void *matrixoffset, void *positionoffset, unsigned int stride)
+void RAS_Rasterizer::ActivateOverrideShaderInstancing(void *matrixoffset, void *matrixinvoffset, void *positionoffset, unsigned int stride)
 {
 	GPUShader *shader = GetOverrideGPUShader(m_overrideShader);
 	if (shader) {
-		GPU_shader_bind_instancing_attrib(shader, matrixoffset, positionoffset, stride);
+		GPU_shader_bind_instancing_attrib(shader, matrixoffset, matrixinvoffset, positionoffset, stride);
 	}
 }
 

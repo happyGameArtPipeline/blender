@@ -314,6 +314,7 @@ void RAS_DisplayArrayBucket::RunInstancingNode(const RAS_DisplayArrayNodeTuple& 
 	if (managerData->m_shaderOverride) {
 		rasty->ActivateOverrideShaderInstancing(
 			m_instancingBuffer->GetMatrixOffset(),
+			m_instancingBuffer->GetMatrixInvOffset(),
 			m_instancingBuffer->GetPositionOffset(),
 			m_instancingBuffer->GetStride());
 	}
@@ -321,6 +322,7 @@ void RAS_DisplayArrayBucket::RunInstancingNode(const RAS_DisplayArrayNodeTuple& 
 		material->ActivateInstancing(
 			rasty,
 			m_instancingBuffer->GetMatrixOffset(),
+			m_instancingBuffer->GetMatrixInvOffset(),
 			m_instancingBuffer->GetPositionOffset(),
 			m_instancingBuffer->GetColorOffset(),
 			m_instancingBuffer->GetStride());
